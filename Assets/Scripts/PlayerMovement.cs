@@ -14,12 +14,18 @@ public class PlayerMovement : MonoBehaviour
     [Header("Jumping")]
     public float jumpForce = 5f;
 
+    [Header("Sliding")]
+    [SerializeField] float slideBoost = 10f;
+    [SerializeField] float reducedHeight;
+    bool isSliding = false;
+
     [Header("Drag")]
     [SerializeField] float groundDrag = 6f;
     [SerializeField] float airDrag = 2f;
 
     [Header("Keybinds")]
     [SerializeField] KeyCode jumpKey = KeyCode.Space;
+    [SerializeField] KeyCode slideKey = KeyCode.LeftControl;
 
     [Header("Ground Detection")]
     [SerializeField] Transform groundCheck;
@@ -36,6 +42,9 @@ public class PlayerMovement : MonoBehaviour
     Vector3 slopeMoveDirection;
 
     Rigidbody body;
+    CapsuleCollider collider;
+
+    float originalHeight;
 
     RaycastHit slopeHit;
 
@@ -59,6 +68,8 @@ public class PlayerMovement : MonoBehaviour
     {
         body = GetComponent<Rigidbody>();
         body.freezeRotation = true;
+        collider = GetComponentInChildren<CapsuleCollider>();
+        originalHeight = collider.height;
     }
 
     private void Update()
@@ -71,6 +82,22 @@ public class PlayerMovement : MonoBehaviour
         if(Input.GetKeyDown(jumpKey) && isGrounded)
         {
             Jump();
+        }
+        else if (Input.GetKeyDown(slideKey) && isGrounded && !isSliding)
+        {
+            isSliding = true;
+            Slide();
+        }
+        else if (Input.GetKeyDown(slideKey) && isGrounded && isSliding)
+        {
+            isSliding = false;
+            StopSlide();
+        }      
+
+        if(isSliding && body.velocity.magnitude < 3)
+        {
+            isSliding = false;
+            StopSlide();
         }
 
         slopeMoveDirection = Vector3.ProjectOnPlane(moveDirection, slopeHit.normal);
@@ -90,6 +117,19 @@ public class PlayerMovement : MonoBehaviour
         body.AddForce(transform.up * jumpForce, ForceMode.Impulse);
     }
 
+    void Slide()
+    {
+        groundDrag = 2f;
+        collider.height = reducedHeight;
+        body.AddForce(moveDirection.normalized * slideBoost * movementMultiplier, ForceMode.VelocityChange);
+    }
+
+    void StopSlide()
+    {
+        groundDrag = 6f;
+        collider.height = originalHeight;
+    }
+
     void ControlDrag()
     {
         if(isGrounded)
@@ -105,7 +145,10 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        MovePlayer();
+        if(!isSliding)
+        {
+            MovePlayer();
+        }
     }
 
     void MovePlayer()
