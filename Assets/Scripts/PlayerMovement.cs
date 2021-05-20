@@ -18,6 +18,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float slideBoost = 10f;
     [SerializeField] float reducedHeight;
     bool isSliding = false;
+    float slopeSlideAccumulator = 0;
 
     [Header("Drag")]
     [SerializeField] float groundDrag = 6f;
@@ -40,6 +41,7 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 moveDirection;
     Vector3 slopeMoveDirection;
+    Vector3 slopeDirection;
 
     Rigidbody body;
     CapsuleCollider collider;
@@ -81,6 +83,11 @@ public class PlayerMovement : MonoBehaviour
 
         if(Input.GetKeyDown(jumpKey) && isGrounded)
         {
+            if(isSliding)
+            {
+                isSliding = false;
+                StopSlide();
+            }
             Jump();
         }
         else if (Input.GetKeyDown(slideKey) && isGrounded && !isSliding)
@@ -100,7 +107,13 @@ public class PlayerMovement : MonoBehaviour
             StopSlide();
         }
 
+        if(isSliding && OnSlope())
+        {
+            SpeedUpSlopeSlide();
+        }
+
         slopeMoveDirection = Vector3.ProjectOnPlane(moveDirection, slopeHit.normal);
+        //print(body.velocity.magnitude);
     }
 
     void MyInput()
@@ -121,11 +134,31 @@ public class PlayerMovement : MonoBehaviour
     {
         groundDrag = 2f;
         collider.height = reducedHeight;
-        body.AddForce(moveDirection.normalized * slideBoost * movementMultiplier, ForceMode.VelocityChange);
+        if(OnSlope())
+        {
+            StartSlopeSlide();
+        } else
+        {
+            body.AddForce(moveDirection.normalized * slideBoost * movementMultiplier, ForceMode.VelocityChange);
+        }
+        
+    }
+
+    void StartSlopeSlide()
+    {
+        body.AddForce(slopeMoveDirection * slideBoost , ForceMode.Acceleration);
+        slopeDirection = slopeMoveDirection;
+    }
+
+    void SpeedUpSlopeSlide()
+    {
+        slopeSlideAccumulator += .5f;
+        body.AddForce(slopeDirection * slideBoost * slopeSlideAccumulator, ForceMode.Acceleration);
     }
 
     void StopSlide()
     {
+        slopeSlideAccumulator = 0f;
         groundDrag = 6f;
         collider.height = originalHeight;
     }
@@ -145,6 +178,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        print(isSliding);
         if(!isSliding)
         {
             MovePlayer();
