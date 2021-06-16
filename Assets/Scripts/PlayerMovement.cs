@@ -146,7 +146,7 @@ public class PlayerMovement : MonoBehaviour
 
     void StartSlopeSlide()
     {
-        body.AddForce(slopeMoveDirection * slideBoost , ForceMode.Acceleration);
+        body.AddForce(slopeMoveDirection * slideBoost * movementMultiplier , ForceMode.Acceleration);
         slopeDirection = slopeMoveDirection;
     }
 
