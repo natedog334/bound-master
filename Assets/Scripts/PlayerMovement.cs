@@ -42,6 +42,7 @@ public class PlayerMovement : MonoBehaviour
     Vector3 moveDirection;
     Vector3 slopeMoveDirection;
     Vector3 slopeDirection;
+    RaycastHit slideSlopeHit;
 
     Rigidbody body;
     CapsuleCollider collider;
@@ -101,7 +102,7 @@ public class PlayerMovement : MonoBehaviour
             StopSlide();
         }      
 
-        if(isSliding && body.velocity.magnitude < 3)
+        if(isSliding && body.velocity.magnitude < 3 && !OnSlope())
         {
             isSliding = false;
             StopSlide();
@@ -146,8 +147,11 @@ public class PlayerMovement : MonoBehaviour
 
     void StartSlopeSlide()
     {
-        body.AddForce(slopeMoveDirection * slideBoost * movementMultiplier , ForceMode.Acceleration);
-        slopeDirection = slopeMoveDirection;
+        body.AddForce(slopeMoveDirection * slideBoost * movementMultiplier, ForceMode.Acceleration);
+        Physics.Raycast(transform.position, -transform.up, out slideSlopeHit);
+        Vector3 left = Vector3.Cross(slideSlopeHit.normal, Vector3.up);
+        Vector3 slope = Vector3.Cross(slideSlopeHit.normal, left);
+        slopeDirection = slope;
     }
 
     void SpeedUpSlopeSlide()
