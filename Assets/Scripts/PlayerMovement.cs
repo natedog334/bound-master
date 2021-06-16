@@ -42,14 +42,14 @@ public class PlayerMovement : MonoBehaviour
     Vector3 moveDirection;
     Vector3 slopeMoveDirection;
     Vector3 slopeDirection;
-    RaycastHit slideSlopeHit;
 
     Rigidbody body;
-    CapsuleCollider collider;
+    CapsuleCollider playerCollider;
 
     float originalHeight;
 
     RaycastHit slopeHit;
+    RaycastHit slopeSlideHit;
 
     private bool OnSlope()
     {
@@ -71,8 +71,8 @@ public class PlayerMovement : MonoBehaviour
     {
         body = GetComponent<Rigidbody>();
         body.freezeRotation = true;
-        collider = GetComponentInChildren<CapsuleCollider>();
-        originalHeight = collider.height;
+        playerCollider = GetComponentInChildren<CapsuleCollider>();
+        originalHeight = playerCollider.height;
     }
 
     private void Update()
@@ -91,16 +91,20 @@ public class PlayerMovement : MonoBehaviour
             }
             Jump();
         }
-        else if (Input.GetKeyDown(slideKey) && isGrounded && !isSliding)
+        else if(Input.GetKeyDown(slideKey) && isGrounded && !isSliding)
         {
             isSliding = true;
             Slide();
         }
-        else if (Input.GetKeyDown(slideKey) && isGrounded && isSliding)
+        else if(Input.GetKeyDown(slideKey) && isGrounded && isSliding)
         {
             isSliding = false;
             StopSlide();
         }      
+        else if (Input.GetKeyDown(slideKey) && !isGrounded)
+        {
+
+        }
 
         if(isSliding && body.velocity.magnitude < 3 && !OnSlope())
         {
@@ -110,6 +114,10 @@ public class PlayerMovement : MonoBehaviour
 
         if(isSliding && OnSlope())
         {
+            Physics.Raycast(transform.position, -transform.up, out slopeSlideHit);
+            Vector3 left = Vector3.Cross(slopeSlideHit.normal, Vector3.up);
+            Vector3 slope = Vector3.Cross(slopeSlideHit.normal, left);
+            slopeDirection = slope;
             SpeedUpSlopeSlide();
         }
 
@@ -134,7 +142,7 @@ public class PlayerMovement : MonoBehaviour
     void Slide()
     {
         groundDrag = 2f;
-        collider.height = reducedHeight;
+        playerCollider.height = reducedHeight;
         if(OnSlope())
         {
             StartSlopeSlide();
@@ -148,10 +156,6 @@ public class PlayerMovement : MonoBehaviour
     void StartSlopeSlide()
     {
         body.AddForce(slopeMoveDirection * slideBoost * movementMultiplier, ForceMode.Acceleration);
-        Physics.Raycast(transform.position, -transform.up, out slideSlopeHit);
-        Vector3 left = Vector3.Cross(slideSlopeHit.normal, Vector3.up);
-        Vector3 slope = Vector3.Cross(slideSlopeHit.normal, left);
-        slopeDirection = slope;
     }
 
     void SpeedUpSlopeSlide()
@@ -164,7 +168,7 @@ public class PlayerMovement : MonoBehaviour
     {
         slopeSlideAccumulator = 0f;
         groundDrag = 6f;
-        collider.height = originalHeight;
+        playerCollider.height = originalHeight;
     }
 
     void ControlDrag()
@@ -183,7 +187,7 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate()
     {
         print(isSliding);
-        if(!isSliding)
+        if(!isSliding || !isGrounded)
         {
             MovePlayer();
         }
