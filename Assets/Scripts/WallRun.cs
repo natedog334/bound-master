@@ -57,12 +57,10 @@ public class WallRun : MonoBehaviour
             if(wallLeft)
             {
                 StartWallRun();
-                print("running on left wall");
             }
             else if (wallRight)
             {
                 StartWallRun();
-                print("running on right wall");
             }
             else
             {

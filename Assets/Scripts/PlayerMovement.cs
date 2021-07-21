@@ -18,6 +18,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float slideBoost = 10f;
     [SerializeField] float reducedHeight;
     bool isSliding = false;
+    bool slideQueued = false;
     float slopeSlideAccumulator = 0;
 
     [Header("Drag")]
@@ -101,9 +102,17 @@ public class PlayerMovement : MonoBehaviour
             isSliding = false;
             StopSlide();
         }      
-        else if (Input.GetKeyDown(slideKey) && !isGrounded)
+        
+        if(Input.GetKeyDown(slideKey) && !isGrounded && !isSliding)
         {
+            slideQueued = !slideQueued;
+        }
 
+        if(isGrounded && slideQueued)
+        {
+            isSliding = true;
+            slideQueued = false;
+            AirToSlide();
         }
 
         if(isSliding && body.velocity.magnitude < 3 && !OnSlope())
@@ -153,6 +162,15 @@ public class PlayerMovement : MonoBehaviour
         
     }
 
+    void AirToSlide()
+    {
+        groundDrag = 2f;
+        playerCollider.height = reducedHeight;
+
+        Vector3 momentumDirection = body.velocity;
+        body.AddForce(momentumDirection.normalized * slideBoost, ForceMode.VelocityChange);
+    }
+
     void StartSlopeSlide()
     {
         body.AddForce(slopeMoveDirection * slideBoost * movementMultiplier, ForceMode.Acceleration);
@@ -171,6 +189,15 @@ public class PlayerMovement : MonoBehaviour
         playerCollider.height = originalHeight;
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.collider.tag == "Jump Pad" && isSliding)
+        {
+            isSliding = false;
+            StopSlide();
+        }
+    }
+
     void ControlDrag()
     {
         if(isGrounded)
@@ -186,7 +213,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        print(isSliding);
         if(!isSliding || !isGrounded)
         {
             MovePlayer();
