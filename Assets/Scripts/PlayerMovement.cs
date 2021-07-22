@@ -168,7 +168,7 @@ public class PlayerMovement : MonoBehaviour
         playerCollider.height = reducedHeight;
 
         Vector3 momentumDirection = body.velocity;
-        body.AddForce(momentumDirection.normalized * slideBoost, ForceMode.VelocityChange);
+        body.AddForce(momentumDirection.normalized * slideBoost * 8, ForceMode.VelocityChange);
     }
 
     void StartSlopeSlide()
