@@ -178,7 +178,7 @@ public class PlayerMovement : MonoBehaviour
 
     void SpeedUpSlopeSlide()
     {
-        slopeSlideAccumulator += .5f;
+        slopeSlideAccumulator += .75f;
         body.AddForce(slopeDirection * slideBoost * slopeSlideAccumulator, ForceMode.Acceleration);
     }
 
