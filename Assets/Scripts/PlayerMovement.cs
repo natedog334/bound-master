@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    // Variables
     [SerializeField] Transform orientation;
 
     [Header("Movement")]
@@ -52,6 +53,10 @@ public class PlayerMovement : MonoBehaviour
     RaycastHit slopeHit;
     RaycastHit slopeSlideHit;
 
+    /// <summary>
+    /// Determines whether or not the Player is on a slope
+    /// </summary>
+    /// <returns>bool signifying if the Player is on a slope</returns>
     private bool OnSlope()
     {
         if(Physics.Raycast(transform.position, Vector3.down, out slopeHit, distanceToGround + 0.5f))
@@ -68,6 +73,9 @@ public class PlayerMovement : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Gets necessary references and sets certain Player conditions
+    /// </summary>
     private void Start()
     {
         body = GetComponent<Rigidbody>();
@@ -76,6 +84,9 @@ public class PlayerMovement : MonoBehaviour
         originalHeight = playerCollider.height;
     }
 
+    /// <summary>
+    /// Handles all Player input pertaining to movement
+    /// </summary>
     private void Update()
     {
         distanceToGround = GetComponentInChildren<Collider>().bounds.extents.y;
@@ -83,6 +94,7 @@ public class PlayerMovement : MonoBehaviour
         MyInput();
         ControlDrag();
 
+        // Jumping
         if(Input.GetKeyDown(jumpKey) && isGrounded)
         {
             if(isSliding)
@@ -92,22 +104,25 @@ public class PlayerMovement : MonoBehaviour
             }
             Jump();
         }
+        // Sliding
         else if(Input.GetKeyDown(slideKey) && isGrounded && !isSliding)
         {
             isSliding = true;
             Slide();
         }
+        // Jumping out of slide
         else if(Input.GetKeyDown(slideKey) && isGrounded && isSliding)
         {
             isSliding = false;
             StopSlide();
         }      
         
+        // Queue slide from air
         if(Input.GetKeyDown(slideKey) && !isGrounded && !isSliding)
         {
             slideQueued = !slideQueued;
         }
-
+        // Detect air to slide
         if(isGrounded && slideQueued)
         {
             isSliding = true;
@@ -115,12 +130,14 @@ public class PlayerMovement : MonoBehaviour
             AirToSlide();
         }
 
+        // Stop slide if Player slows to a certain speed
         if(isSliding && body.velocity.magnitude < 3 && !OnSlope())
         {
             isSliding = false;
             StopSlide();
         }
 
+        // Detect slope slide
         if(isSliding && OnSlope())
         {
             Physics.Raycast(transform.position, -transform.up, out slopeSlideHit);
@@ -131,9 +148,42 @@ public class PlayerMovement : MonoBehaviour
         }
 
         slopeMoveDirection = Vector3.ProjectOnPlane(moveDirection, slopeHit.normal);
-        //print(body.velocity.magnitude);
     }
 
+    /// <summary>
+    /// Executes Player movement
+    /// </summary>
+    private void FixedUpdate()
+    {
+        if (!isSliding || !isGrounded)
+        {
+            MovePlayer();
+        }
+    }
+
+    /// <summary>
+    /// Adds forces to execute Player's WASD movements
+    /// </summary>
+    void MovePlayer()
+    {
+        if (isGrounded && !OnSlope())
+        {
+            body.AddForce(moveDirection.normalized * moveSpeed * movementMultiplier, ForceMode.Acceleration);
+        }
+        else if (isGrounded && OnSlope())
+        {
+            body.AddForce(slopeMoveDirection.normalized * moveSpeed * movementMultiplier, ForceMode.Acceleration);
+        }
+        else if (!isGrounded)
+        {
+            body.AddForce(moveDirection.normalized * moveSpeed * movementMultiplier * airMultiplier, ForceMode.Acceleration);
+        }
+
+    }
+
+    /// <summary>
+    /// Detects WASD input from Player and sets move direction accordingly
+    /// </summary>
     void MyInput()
     {
         horizontalMovement = Input.GetAxisRaw("Horizontal");
@@ -142,12 +192,18 @@ public class PlayerMovement : MonoBehaviour
         moveDirection = orientation.forward * verticalMovement + orientation.right * horizontalMovement;
     }
 
+    /// <summary>
+    /// Add force to Player to make them jump
+    /// </summary>
     void Jump()
     {
         body.velocity = new Vector3(body.velocity.x, 0, body.velocity.z);
         body.AddForce(transform.up * jumpForce, ForceMode.Impulse);
     }
 
+    /// <summary>
+    /// Reduce Player height and add force to Player to make them slide
+    /// </summary>
     void Slide()
     {
         groundDrag = 2f;
@@ -162,6 +218,9 @@ public class PlayerMovement : MonoBehaviour
         
     }
 
+    /// <summary>
+    /// Handles direction and force when the Player executes a slide from the air
+    /// </summary>
     void AirToSlide()
     {
         groundDrag = 2f;
@@ -171,17 +230,26 @@ public class PlayerMovement : MonoBehaviour
         body.AddForce(momentumDirection.normalized * slideBoost * 8, ForceMode.VelocityChange);
     }
 
+    /// <summary>
+    /// Begins the Player's slide down a slope
+    /// </summary>
     void StartSlopeSlide()
     {
         body.AddForce(slopeMoveDirection * slideBoost * movementMultiplier, ForceMode.Acceleration);
     }
 
+    /// <summary>
+    /// Speeds up the Player's slope slide over time
+    /// </summary>
     void SpeedUpSlopeSlide()
     {
         slopeSlideAccumulator += .75f;
         body.AddForce(slopeDirection * slideBoost * slopeSlideAccumulator, ForceMode.Acceleration);
     }
 
+    /// <summary>
+    /// Returns Player to normal conditions and ends slide
+    /// </summary>
     void StopSlide()
     {
         slopeSlideAccumulator = 0f;
@@ -189,6 +257,10 @@ public class PlayerMovement : MonoBehaviour
         playerCollider.height = originalHeight;
     }
 
+    /// <summary>
+    /// Ends Player's slide if they use a jump pad
+    /// </summary>
+    /// <param name="collision">Collision object</param>
     private void OnCollisionEnter(Collision collision)
     {
         if(collision.collider.tag == "Jump Pad" && isSliding)
@@ -198,6 +270,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Changes drag depending on if Player is grounded or in the air
+    /// </summary>
     void ControlDrag()
     {
         if(isGrounded)
@@ -209,30 +284,5 @@ public class PlayerMovement : MonoBehaviour
             body.drag = airDrag;
             body.AddForce(Physics.gravity);
         }
-    }
-
-    private void FixedUpdate()
-    {
-        if(!isSliding || !isGrounded)
-        {
-            MovePlayer();
-        }
-    }
-
-    void MovePlayer()
-    {
-        if(isGrounded && !OnSlope())
-        {
-            body.AddForce(moveDirection.normalized * moveSpeed * movementMultiplier, ForceMode.Acceleration);
-        }
-        else if(isGrounded && OnSlope())
-        {
-            body.AddForce(slopeMoveDirection.normalized * moveSpeed * movementMultiplier, ForceMode.Acceleration);
-        }
-        else if(!isGrounded)
-        {
-            body.AddForce(moveDirection.normalized * moveSpeed * movementMultiplier * airMultiplier, ForceMode.Acceleration);
-        }
-        
     }
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerLook : MonoBehaviour
 {
+    // Variables
     [SerializeField] WallRun wallRun;
 
     [SerializeField] private float sensX;
@@ -20,12 +21,18 @@ public class PlayerLook : MonoBehaviour
     float xRotation;
     float yRotation;
 
+    /// <summary>
+    /// Locks and hides cursor from Player
+    /// </summary>
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
+    /// <summary>
+    /// Moves the camera based on the Player's mouse movements
+    /// </summary>
     private void Update()
     {
         MyInput();
@@ -35,6 +42,9 @@ public class PlayerLook : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Gets input data from the Player's mouse movements
+    /// </summary>
     void MyInput()
     {
         mouseX = Input.GetAxisRaw("Mouse X");

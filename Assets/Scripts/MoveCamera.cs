@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class MoveCamera : MonoBehaviour
 {
+    // Variables
     [SerializeField] Transform cameraPosition;
 
-    // Update is called once per frame
+    /// <summary>
+    /// Moves camera along with camera holder
+    /// </summary>
     void Update()
     {
         transform.position = cameraPosition.position;

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class WallRun : MonoBehaviour
 {
+    // Variables
     [SerializeField] Transform orientation;
 
     [Header("Detection")]
@@ -32,22 +33,36 @@ public class WallRun : MonoBehaviour
 
     private Rigidbody body;
 
+    /// <summary>
+    /// Gets reference to Player's Rigidbody
+    /// </summary>
     private void Start()
     {
         body = GetComponent<Rigidbody>();
     }
 
+    /// <summary>
+    /// Determines whether or not the Player is able to wallrun
+    /// </summary>
+    /// <returns>bool signifying if the Player can wallrun</returns>
     bool CanWallRun()
     {
         return !Physics.Raycast(transform.position, Vector3.down, minJumpHeight);
     }
 
+    /// <summary>
+    /// Checks if there is a wall on either side of the Player
+    /// </summary>
     void CheckWall()
     {
         wallLeft = Physics.Raycast(transform.position, -orientation.right, out leftWallHit, wallDistance);
         wallRight = Physics.Raycast(transform.position, orientation.right, out rightWallHit, wallDistance);
     }
 
+    /// <summary>
+    /// Starts a wallrun for the Player if the proper conditions are met. Ends wall run
+    /// when conditions are no longer met
+    /// </summary>
     private void Update()
     {
         CheckWall();
@@ -70,6 +85,9 @@ public class WallRun : MonoBehaviour
         StopWallRun();
     }
 
+    /// <summary>
+    /// Applies lower gravity to the Player, tilts their camera, and handles jumps from the wall
+    /// </summary>
     void StartWallRun()
     {
         body.useGravity = false;
@@ -102,6 +120,9 @@ public class WallRun : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Returns Player to normal gravity and straightens their camera
+    /// </summary>
     void StopWallRun()
     {
         body.useGravity = true;
