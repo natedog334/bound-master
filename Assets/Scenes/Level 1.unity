@@ -226,6 +226,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Crosshair
       objectReference: {fileID: 0}
+    - target: {fileID: 5551794087738112714, guid: b54e64c0e6bb63d4f958b414cb9d3deb, type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6386679162874369782, guid: b54e64c0e6bb63d4f958b414cb9d3deb, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -357,6 +361,10 @@ PrefabInstance:
     - target: {fileID: 7678200980608097547, guid: 1102453ab8386e242972b33887f6ceb5, type: 3}
       propertyPath: m_Name
       value: Camera Holder
+      objectReference: {fileID: 0}
+    - target: {fileID: 7678200980608097547, guid: 1102453ab8386e242972b33887f6ceb5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7678200980608097556, guid: 1102453ab8386e242972b33887f6ceb5, type: 3}
       propertyPath: m_LocalPosition.x
